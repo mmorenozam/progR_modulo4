@@ -1139,5 +1139,75 @@
     "title": "Módulo 4: Introducción a la Estadística en R",
     "section": "Autoevaluación # 10",
     "text": "Autoevaluación # 10\nEn esta autoevaluación, usaremos tablas de datos del paquete UsingR y datarium:\n\nLa tabla de datos blood (paquete UsingR) tiene las medidas de presión sistólica de sangre correspondientes a 15 pacientes (columna “machine”). De acuerdo al Centro de Prevención y Control de Enfermedades de los Estados Unidos (CDC), una presión sistólica saludable está por debajo de 120 mm Hg. Determina si la media de la muestra contenida en esta tabla de datos está por debajo de este valor sugerido por el CDC.\n\n\ndata(blood)\nblood\n\n\nLa tabla de datos normtemp (paquete UsingR) tiene las medidas en grados Fahrenheit de temperatura corporal (columna “temperature” ) correspodientes a 65 mujeres y 65 hombres (columna “gender”). Determina si existe una diferencia entre las temperaturas corporales de hombres y mujeres.\n\n\ndata(normtemp)\nnormtemp\n\n\nLa tabla de datos mice2 (paquete datarium) tiene las medidas del peso de 10 ratones antes y después de haber sido sometidos a una determinada dieta. Encuentra si existe una diferencia significativa en el peso de estos ratones antes y después del régimen de dieta al que fueron expuestos. ¿Ganaron o perdieron peso?\n\n\ndata(mice2)\nmice2\n\n\nEn el paquete UsingR tenemos disponible una lista con 5 objetos bajo el nombre cancer. Esta contiene el tiempo de sobreviviencia en días de pacientes con distintos tipos de cáncer desde el momento de su diagnóstico hasta su deceso. Chequea si los datos correspondientes a cáncer de colon son normalmente distribuidos. Si no lo son, prueba si puedes normalizarlos usando alguna de las tres transformaciones que vimos. En el caso que más de una transformación funcione, ¿cuál escogerías para continuar con alguna prueba estadística, y por qué?\n\nTip: usa el siguiente código para extraer en un vector los datos de pacientes con cáncer de colon:\n\ndata(cancer)\ncolon &lt;- cancer$colon"
+  },
+  {
+    "objectID": "index.html#pasos-en-una-investigación",
+    "href": "index.html#pasos-en-una-investigación",
+    "title": "Módulo 4: Introducción a la Estadística en R",
+    "section": "Pasos en una investigación",
+    "text": "Pasos en una investigación\n\n\n¿Cuál es la pregunta qué deseo contestar? ¿cuál es mi objetivo?\n\nSuperioridad de mi tratamiento vs. un control\nNo existe diferencia de mi tratamiento vs. un control\nEquivalencia de mi tratamiento vs. una referencia\nAsociación/dependencia/correlación entre una o más variables\n\n¿Qué tipo de estudio voy a llevar a cabo?\n\nExperimental\nObservacional (*)\n\n¿Qué tipo de variables voy a medir?\n\nEs mi respuesta continua o discreta\n\n¿Cuál es el dominio de esas variables?\n\nMi respuesta puede tomar cualquier valor real (positivo la mayor parte del tiempo)"
+  },
+  {
+    "objectID": "index.html#pasos-en-una-investigación-1",
+    "href": "index.html#pasos-en-una-investigación-1",
+    "title": "Módulo 4: Introducción a la Estadística en R",
+    "section": "Pasos en una investigación",
+    "text": "Pasos en una investigación\n\n\n¿Cuál es el dominio de esas variables? (continuación)\n\nMi respuesta es un porcentaje (entre 0 y 100)\nMi respuesta es dicotómica (si/no)\nMi respuesta es un conteo (puede ser descrita con números enteros únicamente)\nMi respuesta es una proporción (valores entre 0 y 1)\nMi respuesta es categórica y representa un orden\nMi respuesta es categórica pero no representa un orden\n\nSi mi estudio es experimental, ¿qué diseño experimental voy a utilizar para levantar mis datos?\n\nDiseño completamente al azar (DCA)\nDiseño de bloques completamente al azar (DBCA)\nDiseño factorial completo (DFC)\nDiseño cuadrado latino (DCL)"
+  },
+  {
+    "objectID": "index.html#pasos-en-una-investigación-2",
+    "href": "index.html#pasos-en-una-investigación-2",
+    "title": "Módulo 4: Introducción a la Estadística en R",
+    "section": "Pasos en una investigación",
+    "text": "Pasos en una investigación\n\n\nSi mi estudio es observacional, ¿qué tipo de muestreo voy a llevar a cabo?\n\nSimple\nEstratificado\n\n¿Cuál debería ser el tamaño de mi muestra?\n¿Qué método(s) estadístico(s) voy a utilizar para analizar mis datos?\n\n\n\n¿Qué No debería hacer antes de realizar una investigación?\n\n\n\nEmpezarla sin haber pensado en todas las preguntas anteriores y esperar tener resultados estadísticamente válidos.\n\n\n\n\nUn principio básico del método científico es el analizar los datos en base a un protocolo pre-establecido, y NO a decidir qué análisis llevar a cabo una vez que se ven los datos."
+  },
+  {
+    "objectID": "index.html#pilares-de-la-inferencia-estadística-diseño-de-experimentos",
+    "href": "index.html#pilares-de-la-inferencia-estadística-diseño-de-experimentos",
+    "title": "Módulo 4: Introducción a la Estadística en R",
+    "section": "Pilares de la inferencia estadística (Diseño de experimentos)",
+    "text": "Pilares de la inferencia estadística (Diseño de experimentos)\n\n\nRepetición/Replicación: es la aplicación de los tratamientos a un determinado número de unidades experimentales (al menos 3). Puede ser igual al tamaño de muestra en ciertos casos.\nAleatoriedad/Randomización: la asignación de unidades experimentales a un tratamiento debe realizarse al azar. Esto evita sesgos en las inferencias estadísticas al precautelar la independencia de los datos recolectados.\nBalance: se refiere al intentar el siempre tener un número igual de unidades experimentales en los tratamientos de interés. Datos no balanceados requieren de métodos estadísticos corregidos."
+  },
+  {
+    "objectID": "index.html#sobre-las-repeticiones",
+    "href": "index.html#sobre-las-repeticiones",
+    "title": "Módulo 4: Introducción a la Estadística en R",
+    "section": "Sobre las repeticiones",
+    "text": "Sobre las repeticiones\n\nA veces los recursos para llevar a cabo un estudio son limitados y recurrimos a una de estas prácticas para contar con 3 repeticiones por tratamiento:\n\n\nEscenario 1: Tengo las cepas A, B, C y D de bacterias degradadoras de nitrógeno y quiero saber cual de ellas tiene la mejor eficiencia a tres concentraciones de nitrógeno. Cada botella con caldo de cultivo es voluminosa y no tengo el espacio necesario para llevar a cabo tres repeticiones por tratamiento. Solución: preparo una botella de caldo por cepa y concentración (12 en total) y tomo 3 medidas (repeticiones) de cada una.\n\n\nEscenario 2: Tengo dos semillas experimentales de maíz y quiero saber si existe alguna diferencia en la velocidad de crecimiento de estas con respecto a un control. Sin embargo, no cuento con el suficiente número de macetas (9) para plantar las distintas variedades con sus respectivas repeticiones. Solución: En su lugar, cuento con tres macetas y decido plantar tres semillas de cada variedad en cada maceta.\n\n\n¿Cuál es el problema?, pues que esta prácticas no responderán satisfactoriamente los objetivos de cada investigación"
+  },
+  {
+    "objectID": "index.html#sobre-las-repeticiones-1",
+    "href": "index.html#sobre-las-repeticiones-1",
+    "title": "Módulo 4: Introducción a la Estadística en R",
+    "section": "Sobre las repeticiones",
+    "text": "Sobre las repeticiones\n\n\nExisten tres tipos de repeticiones:\n\nRepeticiones biológicas: Cuando tomamos una y solo una medida de una unidad experimental (en el primer escenario anterior necesitaríamos 36 botellas, 3 por cada combinación cepa \\(\\times\\) concentración de N)\nRepeticiones técnicas: Cuando tomamos más de una medida de una unidad experimental (lo que vimos en el primer escenario anterior, 12 botellas, una por cada combinación cepa \\(\\times\\) concentración de N)\nPseudo repeticiones: Cuando en el mismo espacio físico (sin barreras claramente establecidas) coloco dos o más unidades experimentales correspondientes al mismo tratamiento (este es el caso del segundo escenario anterior)."
+  },
+  {
+    "objectID": "index.html#sobre-las-repeticiones-2",
+    "href": "index.html#sobre-las-repeticiones-2",
+    "title": "Módulo 4: Introducción a la Estadística en R",
+    "section": "Sobre las repeticiones",
+    "text": "Sobre las repeticiones\n\n\nTodas las prácticas son por supuesto adecuadas, siempre y cuando sepamos que se usan para objetivos de investigación distintos, y los métodos de análisis también son distintos:\n\nRepeticiones biológicas: Las usamos cuando deseamos hacer inferencias acerca de una población en general. El principio de independencia se mantiene y por tanto requieren metodología estándar (modelos lineales y modelos lineales generalizados).\nRepeticiones técnicas: Las usamos cuando el enfoque es hacer inferencias sobre un inviduo o probando un método, esto por cuanto es natural que las medidas al venir de una misma unidad experimental estén correlacionadas. En este caso, métodos más complejos son necesarios (modelos lineales mixtos y modelos lineales generalizados mixtos).\nPseudo repeticiones: En la medida de lo posible debemos evitarlas. Sin embargo, es común el no tener otro remedio que utilizarlas cuando las condiciones del experimento así lo demandan. Esto es común en campos como la ecología o la piscicultura. De manera similar las repeticiones técnicas, las pseudo repeticiones afectan el principio de independencia y por tanto también se analizan con métodos como modelos lineales mixtos y modelos lineales generalizados mixtos.\n\n\n\n\nPara mayor información acerca de repeticiones biológicas y técnicas, visita este enlace, y acerca de pseudo repeticiones, visita este otro enlace."
+  },
+  {
+    "objectID": "index.html#sobre-las-repeticiones-3",
+    "href": "index.html#sobre-las-repeticiones-3",
+    "title": "Módulo 4: Introducción a la Estadística en R",
+    "section": "Sobre las repeticiones",
+    "text": "Sobre las repeticiones\n\n¿Son 3 repeticiones sufientes por tratamiento?, y ¿por qué 3?\n\n\nTres repeticiones son una convención que no ha sido demostrada satisfactoriamente, pero es ampliamente adoptada.\nUna manera de determinar de manera fundamentada el número apropiado de repeticiones es llevar a cabo análisis de poder.\n\nLos análisis de poder requieren de información previa acerca de la variación esperada y el tamaño del efecto (diferencia entre tratamientos) a detectar.\nEsto requiere de investigación bibliográfica, o conducción de ensayos piloto."
+  },
+  {
+    "objectID": "index.html#sobre-las-repeticiones-4",
+    "href": "index.html#sobre-las-repeticiones-4",
+    "title": "Módulo 4: Introducción a la Estadística en R",
+    "section": "Sobre las repeticiones",
+    "text": "Sobre las repeticiones\n\n¿Cuándo el número de repeticiones es igual al tamaño de la muestra?\n\n\nEs común el confundir estos dos términos, más que nada por el contexto:\nCuando hablamos de un experimento con un solo factor (por ejemplo si tenemos una pregunta puntual cómo si la media aritmética de una muestra difiere de un valor establecido), el número de repeticiones coincide con el tamaño de la muestra.\nCuando hablamos de un experimento con dos o más tratamientos (un grupo control y otro experimental por ejemplo), el tamaño de la muestra refiere al total de unidades experimentales en todo el experimento, y el número de repeticiones se refiere al número de unidades experimentales por tratamiento."
+  },
+  {
+    "objectID": "index.html#sobre-el-tamaño-de-la-muestra",
+    "href": "index.html#sobre-el-tamaño-de-la-muestra",
+    "title": "Módulo 4: Introducción a la Estadística en R",
+    "section": "Sobre el tamaño de la muestra",
+    "text": "Sobre el tamaño de la muestra\n\nYa que hemos hablado de las repeticiones, ¿has escuchado del número 30?\n\n\n30 es el número mágico considerado como el mínimo de observaciones requeridas para llevar a cabo un experimento.\nComo otros números en estadística, proviene de convenciones adoptadas a lo largo del tiempo más que de teoremas completamente indiscutidos.\nEl número 30 ha sido demostrado como una falacia en diversas ocasiones\nSin embargo, 30 es un buen punto de inicio si conocimiento bibliográfico o pre-experimentos no están disponibles para llevar a cabo análisis de poder."
   }
 ]
