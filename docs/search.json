@@ -466,7 +466,7 @@
     "href": "index.html#introducción",
     "title": "Módulo 4: Introducción a la Estadística en R",
     "section": "Introducción",
-    "text": "Introducción\n\n\nHasta el momento nos hemos enfocado a los casos donde comparamos las medias entre dos grupos.\nPero es más común el evaluar distintos tratamientos al mismo tiempo, como ya vimos en el módulo 2 del curso.\nPara ello, contamos con el ANOVA, desarrollado por el estadístico Ronald Fisher a inicios del siglo 20, y que sin duda es el método estadístico más usado hoy en día.\nSu nombre puede ser confuso. El objetivo de un ANOVA es el de determinar la existencia de diferencias entre las medias aritméticas de las muestras representativas de \\(n\\) poblaciones (o en términos más precisos, tratamientos)."
+    "text": "Introducción\n\n\nHasta el momento nos hemos enfocado a los casos donde comparamos las medias entre dos grupos.\nPero es más común el evaluar distintos tratamientos al mismo tiempo.\nPara ello, contamos con el ANOVA, desarrollado por el estadístico Ronald Fisher a inicios del siglo 20, y que sin duda es el método estadístico más usado hoy en día.\nSu nombre puede ser confuso. El objetivo de un ANOVA es el de determinar la existencia de diferencias entre las medias aritméticas de las muestras representativas de \\(n\\) poblaciones (o en términos más precisos, tratamientos)."
   },
   {
     "objectID": "index.html#revisitando-los-estadísticos-descriptivos",

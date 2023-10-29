@@ -1155,7 +1155,7 @@ wilcox.test(genderweight$weight ~ genderweight$group, paired = F)
 ::: incremental
 -   Hasta el momento nos hemos enfocado a los casos donde comparamos las medias entre dos grupos.
 
--   Pero es más común el evaluar distintos tratamientos al mismo tiempo, como ya vimos en el módulo 2 del curso.
+-   Pero es más común el evaluar distintos tratamientos al mismo tiempo.
 
 -   Para ello, contamos con el ANOVA, desarrollado por el estadístico Ronald Fisher a inicios del siglo 20, y que sin duda es el método estadístico más usado hoy en día.
 
