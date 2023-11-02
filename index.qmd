@@ -1996,3 +1996,744 @@ ggplot(gruposvals,
 -   En resumen, sí. Hemos utilizado hasta el momento la corrección adecuada para estos datos.
 :::
 
+## Prueba de Kruskal-Wallis {.smaller}
+
+::: incremental
+
+-   La prueba de Kruskal-Wallis es la alternativa no paramétrica al ANOVA de una vía.
+
+-   Puede extenderse al ANOVA de múltiples vías reorganizando el diseño experimental.
+
+-   Similar a las pruebas de Wilcoxon, se basa en encontrar diferencias de las medianas en lugar de las medias y su poder es menor.
+
+-   Para ilustrar este ejemplo, tomemos la variable `Age.DPO` del estudio de Touchon y veamos si existen diferencias con respecto al tratamiento de predador `Pred`. `Age.DPO` (sin transformaciones no cumple con los supuestos del ANOVA).
+
+:::
+
+. . .
+
+```{r echo=T, eval=T, error=T, fig.align = 'center', fig.width=6}
+kruskal.test(Age.DPO ~ Pred, data = ranas)
+```
+
+## Comparaciones múltiples con Kruskal-Wallis {.smaller}
+
+::: incremental
+
+-   Con KW también podemos hacer comparaciones múltiples.
+
+-   En R base contamos con la función `pairwise.wilcox.test` que lleva a cabo comparaciones por pares mediante el método de Wilcoxon.
+
+:::
+
+. . .
+
+```{r echo=T, eval=T, error=T, fig.align = 'center', fig.width=6}
+pairwise.wilcox.test(ranas$Age.DPO, ranas$Pred, p.adjust.method = "BH")
+```
+
+## Autoevaluación \# 12
+
+-   Encuentra si existen diferencias en la longitud nariz-cloaca al emerger (`SVL.initial`) con respecto a los predadores `Pred` en los datos de Touchon. ¿Qué método es factible usar?, ¿ANOVA de una vía o Kruskal-Wallis?
+
+
+
+## ANOVA de múltiples vías {.smaller}
+
+::: incremental
+
+-   El ANOVA puede extenderse para analizar dos o más factores a la vez. Su nombre entonces varía dependiendo de cuántos factores analicemos, así: ANOVA de dos vías (2 factores), ANOVA de tres vías (3 factores) ...
+
+-   En la práctica es recomendable diseñar experimentos hasta máximo 3 factores:
+
+    -   A más factores, más costosa la investigación
+    
+    -   A más factores, sus interacciones son más difíciles de interpretar
+    
+    -   Es posible inclusive que tengamos resultados sin sentido (interacciones innecesarias)
+    
+-   ¿Qué son las interacciones?
+
+    -   Una interacción se refiere cuando los niveles de un factor podrían depender de los niveles de otro.
+    
+    -   Por ejemplo, con los datos de las ranas, podríamos imaginar que en la ausencia de predadores, tener recursos altos o bajos podría influenciar el tiempo que tomaron los renacuajos en culminar la metamorfosis. Es decir, si hay predadores presentes, podría darse el caso de que las presas se escondan y coman menos influenciando así ese tiempo.
+    
+    -   Así, podríamos saber si el effecto de los recursos son influenciados ante la presencia de predadores
+
+:::
+
+## ANOVA de múltiples vías en R {.smaller .scrollable}
+
+::: incremental
+
+-   Vamos a usar nuevamente los datos de Touchon, la variable de respuesta es la edad de metamorfosis `Age.DPO` y los factores la presencia de predadores `Pred` y los recursos `Res`.
+
+-   Para un ANOVA de múltiples vías en R podemos usar la siguiente sintaxis: `Factor1*Factor2`
+
+-   Para ahorrarnos tiempo, supóngamos que ya corrimos un primer ANOVA, y encontramos que usando el logaritmo de `Age.DPO` podemos normalizar los residuos. [Pero nos encontramos con esto:]{.fragment}
+:::
+
+. . .
+
+```{r echo=T, eval=T, error=T, fig.align = 'center', fig.width=6}
+lm4 <- lm(log(Age.DPO) ~ Pred*Res, data = ranas)
+leveneTest(lm4, center = "mean")
+```
+
+::: incremental
+
+-   **¡La homogeneidad de las varianzas no se cumple!** 😱
+
+-   ¡Ninguna otra transformación funciona!
+
+
+:::
+
+## ANOVA de múltiples vías en R {visibility="uncounted"}
+
+![](images/reir.jpg){fig-align="center"}
+
+## ANOVA de múltiples vías en R {visibility="uncounted" .smaller .scrollable}
+
+::: incremental
+
+-   A parte de reir, en este tipo de situaciones (que son bastante comunes), tenemos dos alternativas:
+
+    1.   Realizar pruebas no paramétricas, o
+    
+    2.   Calcular ANOVAs con correcciones para heterocedasticidad.
+    
+-   Pero como acuñó el Ec. y estadístico Milton Friedman: [*"No existe tal cosa como un almuerzo gratis"*](https://en.wikipedia.org/wiki/There_ain%27t_no_such_thing_as_a_free_lunch){target="_blank"}, usar la segunda opción no es tan fácil como hemos venido viendo.
+
+-   En R, tenemos estos caminos (de peor a mejor opción):
+
+    1.    Realizar el ANOVA usando la corrección de White-Huber disponible en la librería `car`, pero al costo de conducir comparaciones múltiples posiblemente sesgadas (siguiendo la lógica de realizarlas con `emmeans`).
+    
+    2.    Utilizar `rstatix` para un ANOVA con la corrección de Welch, seguido de comparaciones múltiples con la corrección de Games-Howell y poder todavía realizar sus gráficos al costo de romper la secuencia de aprendizaje que hemos venido llevando para el ANOVA.
+    
+    3.    Utilizar las librerías `nlme` para reparametrizar el modelo en forma de un modelo lineal generalizado, y posteriormente usar `car` y `emmeans` para el ANOVA y las comparaciones múltiples, respectivamente. Pero al costo de no poder graficarlas con `rstatix` sino desde 0.
+    
+-   A continuación entonces iremos en este orden de las opciones: 2, 3 y 1 (la última para ejemplificar cuál sería el camino suponiendo que la homocedasticidad se hubiese cumplido).
+
+:::
+
+## ANOVA de múltiples vías en R. Opc. 2 {.smaller .scrollable}
+
+::: incremental
+
+-   El inconveniente de usar la corrección de Welch es que esta se puede aplicar solo a ANOVAs de una vía.
+
+-   Entonces, de manera similar a lo hicimos para poder analizar por Kruskall-Wallis un diseño factorial, tenemos que crear una variable dummy combinando los dos factores para correr un ANOVA de una vía.
+
+-   **Debemos tener en cuenta que** al realizar esto, reducimos poder de la prueba estadística.
+
+:::
+
+. . .
+
+```{r echo=T, eval=F, error=T, fig.align = 'center', fig.width=6}
+ranas$log.Age.DPO <- log(ranas$Age.DPO)
+ranas$tratamiento <- paste(ranas$Pred, ranas$Res, sep = "-")
+anova_op2 <- ranas %>%
+  welch_anova_test(log.Age.DPO ~ tratamiento)
+```
+
+## ANOVA de múltiples vías en R. Opc. 2 {.smaller .scrollable visibility="uncounted"}
+
+-   El inconveniente de usar la corrección de Welch es que esta se puede aplicar solo a ANOVAs de una vía.
+
+-   Entonces, de manera similar a lo hicimos para poder analizar por Kruskall-Wallis un diseño factorial, tenemos que crear una variable dummy combinando los dos factores para correr un ANOVA de una vía.
+
+-   **Debemos tener en cuenta que** al realizar esto, reducimos poder de la prueba estadística.
+
+
+```{r echo=T, eval=T, error=T, fig.align = 'center', fig.width=6}
+ranas$log.Age.DPO <- log(ranas$Age.DPO)
+ranas$tratamiento <- paste(ranas$Pred, ranas$Res, sep = "-")
+ranas$tratamiento <- factor(ranas$tratamiento, levels = c("C-Lo", "NL-Lo", "C-Hi", "L-Lo", "NL-Hi", "L-Hi"))
+anova_op2 <- ranas %>%
+  welch_anova_test(log.Age.DPO ~ tratamiento)
+anova_op2
+```
+
+. . .
+
+-   Ahora podemos realizar las comparaciones de HSD Tukey (con corrección de Games-Howell)
+
+```{r echo=T, eval=T, error=T, fig.align = 'center', fig.width=6}
+games_comp <- ranas %>% games_howell_test(log.Age.DPO ~ tratamiento)
+games_comp <- add_significance(games_comp, 
+                                p.col = "p.adj", 
+                                output.col = "p.adj.signif",
+                                cutpoints = c(0, 0.001, 0.01, 0.05, 0.1, 1),
+                                symbols = c("***", "**", "*", ".", "ns"))
+games_comp
+```
+
+. . . 
+
+-   Finalizamos con el gráfico de estas
+
+```{r echo=T, eval=T, error=T, fig.align = 'center', fig.width=6}
+
+games_comp <- games_comp %>% 
+  add_xy_position(x = "tratamiento", step.increase = 1)
+ggboxplot(ranas,
+          x = "tratamiento",
+          y = "log.Age.DPO") + 
+  stat_pvalue_manual(games_comp, 
+                     hide.ns = T,
+                     y.position = c(5.1,5.5,5.9,6.3,6.7,7.1))
+```
+
+## ANOVA de múltiples vías en R. Opc. 3 {.smaller .scrollable}
+
+::: incremental
+
+-   La tercera opción involucra el reparametrizar el modelo para poder analizarlo como un modelo lineal generalizado.
+
+-   En breve, una de las ventajas de los modelos lineales generalizados es que pueden asumir varianzas distintas a través de modelar directamente la heterocedasticidad.
+
+-   Para su implementación usaremos la librería `nlme`
+
+:::
+
+. . .
+
+```{r echo=T, eval=T, error=T, fig.align = 'center', fig.width=6}
+library(nlme)
+anova_op3 <- gls(log(Age.DPO) ~ Pred*Res,
+                 data = ranas,
+                 weights = varIdent(form = ~1|Pred*Res)) 
+```
+
+. . .
+
+-   Mediante la librería `car` podemos obtener la tabla del ANOVA (o especificamente llamada Analisis de Desviación)
+
+```{r echo=T, eval=T, error=T, fig.align = 'center', fig.width=6}
+Anova(anova_op3)
+```
+
+. . .
+
+-   Ahora, usando `emmeans` podemos calcular el HSD de Tukey directamente sin necesidad de correcciones. Una consideración importante es que, cuando tenemos dos factores debemos hacer las comparaciones de cada factor a la vez a lo largo de los niveles del otro.
+
+. . .
+
+```{r echo=T, eval=T, error=T, fig.align = 'center', fig.width=6}
+tukey_comp_pred <- emmeans(anova_op3, specs = "Pred", by = "Res", method = "tukey") # medias marginales esperadas
+contrast(tukey_comp_pred, specs = "Pred", by = "Res", method = "tukey")
+```
+
+. . .
+
+```{r echo=T, eval=T, error=T, fig.align = 'center', fig.width=6}
+tukey_comp_res <- emmeans(anova_op3, specs = "Res", by = "Pred", method = "tukey") # medias marginales esperadas
+contrast(tukey_comp_res, specs = "Res", by = "Pred", method = "tukey")
+```
+
+
+-   Para graficar estas comparaciones mediante esta opción es necesario el empezar de cero con `ggplot2`. La razón es que `rstatix` no tiene las capacidades de lidiar con interacciones provenientes de `emmeans` (no es compatible con la sintaxis de los comandos `contrast` de arriba) por lo que dejaremos esta opción hasta aquí.
+
+
+## ANOVA de múltiples vías en R. Opc. 1 {.smaller .scrollable}
+
+::: incremental
+
+-   Finalmente, asumamos que no tuvimos el problema de heterocedasticidad y pudimos haber seguido el curso normal para realizar las comparaciones múltiples usando solamente `car`, `emmeans` y `multcomp`.
+
+-   Este es el transcurso normal de tópicos en el aprendizaje del ANOVA de múltiples vías:
+
+:::
+
+. . .
+
+-   Tabla del ANOVA con `car` (mencionamos que `car` es capaz de llevar a cabo una corrección de heterocedasticidad, esta se consigue agregando el argumento `white.adjust = T` dentro de la función `Anova`)
+
+```{r echo=T, eval=T, error=T, fig.align = 'center', fig.width=6}
+Anova(lm4)
+```
+
+. . .
+
+-   Al igual que en la opción 3, calculamos las comparaciones múltiples viendo a cada factor a la vez a lo largo de los niveles del otro.
+
+
+```{r echo=T, eval=T, error=T}
+tukey_comp_pred1 <- emmeans(lm4, specs = "Pred", by = "Res", type = "response")
+contrast(tukey_comp_pred1, specs = "Pred", method = "tukey")
+```
+
+. . .
+
+```{r echo=T, eval=T, error=T}
+tukey_comp_res1 <- emmeans(lm4, specs = "Res", by = "Pred", type = "response")
+contrast(tukey_comp_res1, specs = "Pred", method = "tukey", adjust = "holm")
+```
+
+## Antes de continuar {.smaller}
+
+::: incremental
+
+-   Muchas personas gustan de las tablas de grupos de Tukey para las medias marginales esperadas en diseños experimentales factoriales al estilo que usamos para poder conducir la opción 2 anteriormente descrita.
+
+-   Esta práctica es innecesaria si el investigador es capaz de hacer buenas inferencias basándose en las comparaciones por factor a lo largo de los niveles del otro.
+
+-   No tienen ningún problema operacional ya que a la final es una reparametrización válida del modelo.
+
+-   Sin embargo, cuando el modelo sobre el cual son aplicadas es incorrecto, son más susceptibles de reflejar valores p que concluyen con inferencias falaces.
+
+-   En el largo ejemplo de las opciones a mano para lidiar con heterocedasticidad, podemos con seguridad afirmar que del peor al mejor modelo su orden sería: Opción 1 < Opción 2 < Opción 3.
+
+-   Para ilustrar esto, con la variable dummy que creamos en la opción 2, calculemos los grupos Tukey de las medias marginales esperadas en las opciones 1 y 3 para su comparación.
+
+:::
+
+## Antes de continuar {.smaller visibility="uncounted" .scrollable}
+
+. . .
+
+-   Grupos Tukey de las medias marginales esperadas en la opción 1
+
+```{r echo=T, eval=T, error=T}
+lm_op1 <- lm(log(Age.DPO) ~ tratamiento, data = ranas)
+emm_op1 <- emmeans(lm_op1, specs = "tratamiento", type = "response")
+t_grupos_op1 <- contrast(emm_op1, specs = "tratamiento", method = "tukey")
+t_grupos_op1 <- add_significance(as.data.frame(t_grupos_op1), 
+                                p.col = "p.value", 
+                                output.col = "p.adj.signif.op1",
+                                cutpoints = c(0, 0.001, 0.01, 0.05, 0.1, 1),
+                                symbols = c("***", "**", "*", ".", "ns"))
+```
+
+. . .
+
+-   Grupos Tukey de las medias marginales esperadas en la opción 3
+
+```{r echo=T, eval=T, error=T}
+lm_op3 <- gls(log(Age.DPO) ~ tratamiento,
+                 data = ranas,
+                 weights = varIdent(form = ~1|tratamiento)) 
+emm_op3 <- emmeans(lm_op3, specs = "tratamiento", type = "response")
+t_grupos_op3 <- contrast(emm_op3, specs = "tratamiento", method = "tukey")
+t_grupos_op3 <- add_significance(as.data.frame(t_grupos_op3), 
+                                p.col = "p.value", 
+                                output.col = "p.adj.signif.op3",
+                                cutpoints = c(0, 0.001, 0.01, 0.05, 0.1, 1),
+                                symbols = c("***", "**", "*", ".", "ns"))
+```
+
+
+. . .
+
+-   Un poco de carpintería
+
+```{r echo=T, eval=T, error=T}
+colnames(games_comp)[c(7,8)] <- c("p.value.op2", "p.adj.signif.op2")
+colnames(t_grupos_op3)[7] <- "p.value.op3"
+colnames(t_grupos_op1)[7] <- "p.value.op1"
+
+comp_table <- cbind(t_grupos_op3[,1],
+                    t_grupos_op1[,c(7, 8)],
+                    games_comp[,c(7, 8)],
+                    t_grupos_op3[,c(7, 8)])
+
+comp_table <- flextable(comp_table)
+final_comp_table <- colformat_double(comp_table, j = c(2, 4, 6), digits = 3)
+final_comp_table
+
+```
+
+
+## Gráficos de interacción {.smaller}
+
+::: incremental
+
+-   Es una forma de representar las predicciones lineales de un modelo con respecto a los niveles de sus factores. 
+
+-   Es recomendable usarlos con factores de hasta 3 niveles y en ANOVAS de dos factores así como también con las medias marginales esperadas.
+
+-   Existen diversas formas de realizarlos en R:
+
+    -   Librería base de R (solo puede hacerlo con medias marginales observadas[... al menos hasta donde tengo conocimiento)]{.fragment}
+    
+    -   Construirlos desde cero con `ggplot2` (para las opciones 2 y 3).
+    
+    -   Usar librerías accesorias de `ggplot2` como `interactions`. (Esta alternativa solo es válida para la primera opción que presentamos)
+:::
+
+
+
+## Gráficos de interacción en R {.scrollable}
+
+::: columns
+::: {.column .fragment width="50%"}
+```{r echo=T, eval=F, error=T}
+library(interactions)
+graf_inter1 <- cat_plot(
+  lm4,
+  pred = Pred,
+  modx = Res,
+  geom = "line",
+  data = ranas
+)
+graf_inter1
+```
+:::
+
+::: {.column .fragment width="50%"}
+```{r echo=F, eval=T, error=T}
+library(interactions)
+graf_inter1 <- cat_plot(
+  lm4,
+  pred = Pred,
+  modx = Res,
+  geom = "line",
+  data = ranas
+)
+graf_inter1
+```
+:::
+:::
+
+
+::: columns
+::: {.column .fragment width="50%"}
+```{r echo=T, eval=F, error=T}
+library(interactions)
+graf_inter2 <- cat_plot(
+  lm4,
+  pred = Res,
+  modx = Pred,
+  geom = "line",
+  data = ranas
+)
+graf_inter2
+```
+:::
+
+::: {.column .fragment width="50%"}
+```{r echo=F, eval=T, error=T}
+library(interactions)
+graf_inter2 <- cat_plot(
+  lm4,
+  pred = Res,
+  modx = Pred,
+  geom = "line",
+  data = ranas
+)
+graf_inter2
+```
+:::
+:::
+
+
+
+## Autoevaluación \# 13
+
+-   Lleva a cabo un ANOVA de dos vías para las variables `Resorb.days` y los factores `Pred` y `Res`. La pregunta a investigar es saber si existe una interacción entre la presencia de predadores a distintos niveles de recursos que afecte el tiempo de reabsorción de la cola en los renacuajos de ranas arbóreas de ojos rojos.
+
+-   A pesar de que el modelo para `Resorb.day` que acabas de hacer cumple con los supuestos del ANOVA, solo por aprendizaje, conduce una prueba de Kruskal-Wallis usando los mismos factores.
+
+
+# Regresión lineal
+
+## Introducción {.smaller}
+
+::: incremental
+
+-   Otro modelo estadístico ampliamente usado es la regresión lineal.
+
+-   Se diferencia del ANOVA al considerar un predictor continuo (no un factor categórico).
+
+-   Los supuestos de la regresión lineal son:
+
+    -   Existencia de una relación lineal entre las variables continuas objeto de la regresión
+    
+    -   Normalidad de los residuos
+    
+    -   Que no exista multicolinearidad (en el caso de regresión múltiple)
+    
+    -   Que no exista auto correlación (que las observaciones no dependan una de otra dentro de una misma variable)
+    
+    -   Homogeneidad de la varianza de los residuos
+
+-   Contrario al ANOVA, no existen correcciones o métodos alternativos cuando las transformaciones fallan.
+
+-   Por esto, lo que se recomienda hacer es mencionar todos los detalles de la conducción del modelo. [Cosa que rara vez pasa.]{.fragment}
+
+-   En regresión lineal es quizá en el método que más se abusa del remover outliers. 
+
+:::
+
+## Regresión lineal en R {.smaller}
+
+::: incremental
+
+-   Usando los datos de Touchon, podríamos preguntarnos si el tamaño de las ranas al final de la metamorfosis `SVL.final` está influenciado por la edad en finalizar la metamorfosis `Age.DPO`.
+
+-   Esta regresión lineal sería de la siguiente forma:
+
+:::
+
+. . .
+
+```{r echo=T, eval=T, error=T}
+lm6 <- lm(SVL.final ~ Age.DPO, data = ranas)
+summary(lm6)
+```
+
+. . . 
+
+- Pero antes de cualquier inferencia, vamos a darle un vistazo a los diagnósticos de la regresión lineal
+
+## Diagnósticos de la regresión lineal
+
+```{r echo=T, eval=F, error=T, fig.align = 'center', fig.width=5}
+par(mfrow = c(2, 2))
+plot(lm6)
+par(mfrow = c(1, 1))
+```
+
+## Diagnósticos de la regresión lineal {visibility="uncounted"}
+
+```{r echo=F, eval=T, error=T, fig.align = 'center', fig.width=6}
+par(mfrow = c(2, 2))
+plot(lm6)
+par(mfrow = c(1, 1))
+```
+
+## Diagnósticos de la regresión lineal {visibility="uncounted" .smaller}
+
+::: {.columns .v-center-container}
+::: {.column .fragment width="40%"}
+```{r echo=F, eval=T, error=T, fig.height=6, fig.width=6}
+plot(lm6, 1)
+```
+:::
+
+::: {.column .fragment width="60%"}
+
+**Residuos vs. Valores ajustados**
+
+En el ANOVA vimos como este plot sugería departuras de la homocedasticidad. En el caso de la regresión lineal, los residuos al no estar agrupados en categorías presentan mayor información sobre este supuesto. Adicionalmente, curvaturas en la línea roja evidencian también departuras de la linearidad. Esto quiere decir que la relación entre las variables no es completamente lineal. A veces esto puede corregirse con transformaciones.
+
+:::
+:::
+
+## Diagnósticos de la regresión lineal {visibility="uncounted" .smaller}
+
+![](images/kutner.png){fig-align="center"}
+
+(a) Es ideal. (b) Es indicativo de no linearidad. (c) Evidencia de heterocedasticidad. (d) Evidencia de una tendencia temporal
+
+## Diagnósticos de la regresión lineal {visibility="uncounted" .smaller}
+
+::: {.columns .v-center-container}
+::: {.column .fragment width="40%"}
+```{r echo=F, eval=T, error=T, fig.height=6, fig.width=6}
+plot(lm6, 2)
+```
+:::
+
+::: {.column .fragment width="60%"}
+**Gráfico Q-Q**
+
+Misma explicación que antes
+:::
+:::
+
+## Diagnósticos de la regresión lineal {visibility="uncounted" .smaller}
+
+::: {.columns .v-center-container}
+::: {.column .fragment width="40%"}
+```{r echo=F, eval=T, error=T, fig.height=6, fig.width=6}
+plot(lm6, 3)
+```
+:::
+
+::: {.column .fragment width="60%"}
+**Raíz cuadrada de los residuos estandarizados vs. Valores ajustados**
+
+Misma explicación que antes
+
+:::
+:::
+
+## Diagnósticos de la regresión lineal {visibility="uncounted" .smaller}
+
+::: {.columns .v-center-container}
+::: {.column .fragment width="40%"}
+```{r echo=F, eval=T, error=T, fig.height=6, fig.width=6}
+plot(lm6, 5)
+```
+:::
+
+::: {.column .fragment width="60%"}
+**Residuos vs. Apalancamiento**
+
+Aquellos puntos que estén etiquetados con números son mostrados como posibles outliers bajo dos criterios:
+
+-   Están por fuera de los límites de la regla del rango intercuartílico (IQR), y
+
+-   Marcados como outliers con influencia de apalancamiento mediante la prueba de Cook (distancia de Cook).
+
+El segundo criterio es un argumento sólido para remover outliers.
+
+:::
+:::
+
+## Pruebas formales de los supuestos {.smaller}
+
+::: incremental
+
+-   Como vimos, los supuestos de la regresión lineal son más que para el ANOVA.
+
+-   Existen varias pruebas formales para chequear cada uno de sus supuestos, sin embargo rara vez son empleadas.
+
+-   La razón yace en que si los aplicáramos todo el tiempo, no haríamos regresiones lineales ni el 10\% de las veces.
+
+-   Si tienes curiosidad en estas pruebas puedes visitar [este enlace.](https://rpubs.com/aryn999/LinearRegressionAssumptionsAndDiagnosticsInR){target="_blank"}
+
+-   De alguna manera podemos decir que de hecho, los estadísticos somos más laxos con la regresión lineal, sin embargo esto es bajo el supuesto no estadístico de que estas departuras de los supuestos fueran debidamente documentadas y plasmadas en los trabajos científicos, lo cual lamentablemente no pasa muy a menudo.
+
+-   Existen por supuesto métodos que no dependen de todos estos supuestos (por ejemplo: regresiones lineales Bayesianas, modelos lineales generalizados correctamente parametrizados) pero no son parte de este curso.
+
+:::
+
+## Transformación de datos {.scrollable .smaller}
+
+::: incremental
+
+-   Al igual que en el ANOVA, podemos recurrir a transformaciones de datos que nos permitan aliviar varios de los supuestos no cumplidos de la regresión lineal.
+
+-   En el presente caso, esto lo logramos al utilizar el logaritmo natural de las dos variables del modelo
+
+:::
+
+. . .
+
+```{r echo=T, eval=T, error=T, fig.height=6, fig.width=6}
+lm6 <- lm(log(SVL.final) ~ log(Age.DPO), data = ranas)
+par(mfrow = c(2, 2))
+plot(lm6)
+par(mfrow = c(1, 1))
+summary(lm6)
+```
+
+## Interpretación de la regresión lineal {.smaller .scrollable}
+
+. . .
+
+$$
+y = mx + b
+$$
+
+. . .
+
+```{r echo=F, eval=T, error=T}
+summary(lm6)
+```
+
+. . .
+
+-   Por cada incremento en una unidad del logaritmo de `Age.DPO`, tenemos una unidad en descenso del logaritmo de `SVL.final`
+
+. . .
+
+```{r echo=T, eval=T, error=T}
+ggplot(ranas, aes(x = log(Age.DPO), y = log(SVL.final))) +
+  geom_point()+
+  geom_smooth(method = "lm")
+```
+
+## Interpretación de la regresión lineal {.smaller .scrollable visibility="uncounted"}
+
+::: incremental
+
+-   Sin embargo una interpretación en la escala logarítmica no es completamente entendible, al menos para alguien ajeno al análisis que realizamos.
+
+-   Podríamos hacer la retransformación de las variables a sus unidades originales y generar un gráfico de las predicciones. A la final se reduce a matemática básica.
+
+-   Afortunadamente la librería `ggeffects` nos salva de ese dilema!
+
+:::
+
+. . .
+
+```{r echo=T, eval=T, error=T}
+library(ggeffects)
+predicciones <- ggpredict(lm6)
+predicciones
+```
+
+. . .
+
+-   Y finalmente el gráfico de predicciones
+
+```{r echo=T, eval=T, error=T, fig.align='center', fig.height=4, fig.width=5}
+plot(predicciones$Age.DPO)
+```
+
+# ¡Antes de terminar!
+
+## El mágico $R^2$
+
+![](images/vieja.jpg){fig-align="center"}
+
+## El mágico $R^2$ {visibility="uncounted" .smaller}
+
+::: incremental
+
+-   Quizá muchos hayan escuchado que un $R^2$ cercano a 1 es "ideal" cuando realizamos una regresión lineal.
+
+-   Recuerdo incluso haber sido indoctrinado acerca de márgenes para un buen $R^2$ (algo así como que por encima del 80\% es "bueno", mayor al 90\% es excelente y 100\% es el Nirvana).
+
+-   En breve, $R^2$ **NO ES NINGUNA DE LAS SIGUIENTES COSAS**:
+
+    -   Una métrica de bondad de ajuste[: no nos dice si el modelo se ajusta bien a los datos.]{.fragment}
+    
+    -   Una métrica del error de predicción[: no mide para nada que tan bueno es el modelo para predecir futuras observaciones.]{.fragment}
+    
+    -   Una métrica que permita comparar modelos usando variables transformadas[: es común jugar a transformar los datos para ver de que manera se puede inflarlo hacia el santo grial.]{.fragment}
+    
+    -   Una métrica que permita que tan bien una variable explica otra[: en el ejemplo que vimos, y en toda regresión lineal, si cambiamos el predictor por respuesta y viceversa, tendremos exactamente el mismo $R^2$]{.fragment}
+    
+-   $R^2$ es simplemente una medida de la cantidad de variación que un modelo específico explica. [¿Tiene alguna utilidad práctica?]{.fragment} [ no lo sé, en 10 años como estadístico no lo he usado nunca, al menos no, voluntariamente...]{.fragment}
+
+:::
+
+## El mágico $R^2$ {visibility="uncounted" .smaller}
+
+. . .
+
+-   Lo que visto es carnicerías de datos por inflar $R^2$ debido a esta mala interpretación que no se sabe su origen exacto ([pero quizá aquí uno de tantos culpables perdidos en la historia](https://psycnet.apa.org/record/1946-01733-001){target="_blank"}).
+
+. . .
+
+-   Acá les dejo unos cuantos recursos que pueden revisar en más detalle si les interesa:
+
+    -   [El paper "How not to lie with Statistics: Avoiding common mistakes in Quantitative Political Science"](https://www.jstor.org/stable/2111095?casa_token=F0Om3ZPkjE4AAAAA%3AvR0lcSXuNHICl21EYDAoXSerVhME0AO_ZvkzayO1vYT6R3cCM9Ooy6-P9Wa6AEZN1Gcm960rjGFM9JVA4AJc4lm-nswzYJxdtiKr03H4tbVMRW16e35TlA){target="_blank"} Un artículo extenso pero que contiene una sección dedicada a desmitificar esta mala práctica.
+    
+    -   [Las notas de la clase del Prof. Cosma Shalizi de la Universidad Carnegie Mellon](https://www.stat.cmu.edu/~cshalizi/mreg/15/lectures/10/lecture-10.pdf){target="_blank"} donde hermosamente destruye los mitos en torno al $R^2$ citando fórmulas y principios estadísticos.
+    
+    -   [Un blog de Clay Ford, consultor estadístico de la Universidad de Virginia](https://data.library.virginia.edu/is-r-squared-useless/){target="_blank"} donde demuestra con R que valores de $R^2$ cercanos a 0 no necesariamente implican un mal modelo, ni valores cercanos 1 son indicativo de modelos destacados. 
+
+## Funciones y librerías en esta sesión {.smaller .scrollable}
+
+**Librerías**
+
+-   `UsingR` y `datarium` contienen recursos de aprendizaje, tablas de datos básicamente.
+
+-   `rstatix` es una librería para llevar a cabo tests y pruebas estadísticas básicas basada en el funcionamiento del operador de cascada de `dplyr`
+
+-   `car` contiene diversas funciones para llevar a cabo análisis estadísticos. Está desarrollado como material adicional de un libro.
+
+-   `ggeffects` ofrece funcionalidades de computación y visualización de medias marginales de una amplia diversidad de tipos de modelos.
+
+-   `emmeans` se especializa en proveer funciones para el cómputo y análisis relacionados de medias marginales de diversos modelos estadísticos. `multcomp` y `multcompView` ofrecen funciones para dar formato a resultados producidos por `emmeans`.
+
+-   `olsrr` ofrece varias pruebas estadísticas para modelos. En este módulo lo hemos usado únicamente para cómputo de pruebas de homocedasticidad de residuos.
+
+-   `ggpubr` es una librería que ofrece una sintaxis reducida para producir figuras de una manera más sencilla que el uso total de `ggplot2`.
